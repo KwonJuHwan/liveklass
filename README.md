@@ -14,34 +14,39 @@
 > `Event Generator (Python/FSM)` ➡️ `Log Storage (MySQL)` ➡️ `Data Visualization (Grafana BI)`
 
 ### 📁 프로젝트 구조 
-프로젝트의 관심사 분리를 위해 핵심 로직(`app`), 인프라 설정(`infrastructure`), 관리 스크립트(`scripts`)로 계층화하였습니다.
+프로젝트의 관심사 분리를 위해 핵심 로직(`app`), 인프라 설정(`infrastructure`)으로 계층화하였습니다.
 ```text
 liveKlass_test/
-├── app/                              # 핵심 애플리케이션 로직
-│   ├── core/                         # 설정 및 공통 상수
+├── app/                                  # 핵심 애플리케이션 로직
+│   ├── core/                             # 설정 및 공통 상수
 │   │   ├── config.py
 │   │   └── constants.py
-│   ├── db/                           # 데이터베이스 연결 및 모델 정의
+│   ├── db/                               # 데이터베이스 연결 및 모델 정의
 │   │   ├── database.py
 │   │   └── models.py
-│   ├── services/                     # 비즈니스 로직 및 데이터 처리
-│   │   ├── fsm.py                    # 상태 머신 로직
-│   │   ├── generators.py             # 데이터 생성 로직
-│   │   └── analyze.py                # 데이터 분석 로직
-│   └── main.py                       # 애플리케이션 실행 진입점 (Entry Point)
-├── infrastructure/                   # 인프라 설정 및 모니터링
+│   ├── services/                         # 비즈니스 로직 및 데이터 처리
+│   │   ├── fsm.py                        # 상태 머신 로직
+│   │   ├── generators.py                 # 데이터 생성 로직
+│   │   └── analyze.py                    # 데이터 분석 로직
+│   └── main.py                           # 애플리케이션 실행 진입점 (Entry Point)
+├── infrastructure/                       # 인프라 설정 및 모니터링
 │   ├── sql/
-│   │   ├── init.sql                  # 데이터베이스 DDL/초기 설정
-│   │   └── visualize.sql             # Grafana BI용 쿼리
+│   │   ├── init.sql                      # 데이터베이스 DDL/초기 설정
+│   │   └── visualize.sql                 # Grafana BI용 쿼리
 │   └── grafana/
-│       └── dashboard_backup.json     # Grafana 대시보드 백업
-├── scripts/                          # 유틸리티 및 관리 스크립트
-│   ├── reset_db.py                   # DB 초기화 스크립트
-│   └── setup.bat                     # 로컬 환경 세팅 스크립트
-├── .env                              # 환경 변수 (Git 제외)
-├── .gitignore                        # Git 추적 제외 목록
-├── docker-compose.yml                # Docker 컨테이너 오케스트레이션
-└── requirements.txt                  # Python 패키지 의존성 목록
+│       └── provisioning
+│           ├── dashboards                # 대시보드 세팅 파일
+│           │   ├── dashboard_backup.json
+│           │   └── dashboard.yaml
+│           └── datasources               # Datasource 세팅 파일
+│               └── mysql.yaml
+├── images/
+│   ├── b_diagram.png                     # AWS 아키텍처 
+│   └── visualized_data.jpg               # 데이터 시각화 화면
+├── .gitignore                            # Git 추적 제외 목록
+├── Dockerfile                            # App Docker 파일 
+├── docker-compose.yml                    # Docker 컨테이너 오케스트레이션
+└── requirements.txt                      # Python 패키지 의존성 목록
 ```
 
 ### 📈 SQL 집계 결과 시각화 
