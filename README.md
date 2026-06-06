@@ -51,32 +51,36 @@ liveKlass_test/
 
 ## 🚀 1. 실행 방법
 
-이 프로젝트는 배치 스크립트를 통해 가상환경 구성, DB 세팅, 초기 데이터 생성을 한 번에 처리합니다.
+프로젝트의 모든 서비스(DB, Grafana, 이벤트 생성기)를 컨테이너화하여, 한 줄의 명령어로 이벤트 생성부터 데이터 저장까지 완료할 수 있습니다.
 
 ### 1-1. 사전 요구 사항
-- Python 3.8 이상
-- Docker 및 Docker Compose 가동 중
+- Docker 및 Docker Compose
 
 ### 1-2. 실행 명령어
 
 **Step 1. 파이프라인 자동 실행(이벤트 생성 -> 저장)**
 
-프로젝트 최상위 디렉터리에서 아래 스크립트를 실행합니다.
+프로젝트 루트 디렉토리에서 다음 명령어를 입력하세요.
 ```bash
-setup.bat
+docker compose up --build -d
 ```
-> **진행 과정:** 가상환경 생성 및 의존성 설치 → DB/Grafana 컨테이너 실행 → 메인 로직(`app/main.py`) 자동 실행
 
-**Step 2. Grafana 시각화 환경 세팅**
+> **진행 과정:**
+> 1. 서비스 빌드: app 컨테이너 및 mysql, grafana 인프라 구축
+> 2. 인프라 대기: mysql 컨테이너가 Healthy 상태가 될 때까지 자동 대기
+> 3. 데이터 적재: DB 연결 확인 후 app/main.py가 자동 실행되어 이벤트 생성 및 로그 저장 완료
+
+**Step 2. 로그 적재 확인**
+
+파이프라인이 정상적으로 동작하여 데이터가 적재되었는지 로그를 통해 즉시 확인할 수 있습니다.
+```bash
+docker compose logs -f app
+```
+> **성공 시 로그 예시:** `모든 데이터 파이프라인 적재 완료 (소요 시간: xx.xx초)` 메시지가 출력되면 성공입니다.
+
+**Step 3. Grafana 시각화 확인**
 1. **접속**: 웹 브라우저에서 http://localhost:3000 접속 (계정: admin / admin)
-2. **데이터 소스 연결**: Connections ➡️ Data sources ➡️ [Add data source] ➡️ MySQL 선택
-   - 설정 정보: `Host URL: mysql:3306` | `Database: liveclass_logs` | `User/Pass: root/root`
-   - 하단의 `[Save & test]`를 클릭하여 연결을 확인합니다.
-3. **대시보드 Import**: Dashboards ➡️ New ➡️ Import 클릭
-4. `infrastructure/grafana/dashboard_backup.json` 업로드 후 데이터 소스 선택하여 `[Import]`
-   
-> 데이터 소스 연결 직후 패널에 데이터가 즉시 로드되지 않을 수 있습니다. 
-> 이 경우, 각 패널의 **Edit ➡️ [Run query]**를 클릭해주세요.
+2. **확인**: 왼쪽탭에서 Dashboards 클릭 후, 데이터 분석 대시보드를 클릭하면 시각화된 데이터를 확인할 수 있습니다.
 
 ## 🏗️ 2. 저장소 선정 및 설계
 
@@ -233,7 +237,8 @@ SELECT refund_reason AS metric, COUNT(*) AS value
 FROM refund_logs
 GROUP BY refund_reason;
 ```
-## [선택과제 B] AWS 아키텍처 설계 및 인프라 고도화 방안
+
+## ☁️ 6. 선택과제 B: AWS 아키텍처 설계 및 인프라 고도화 방안
 
 ### 1. AWS Architecture Diagram
 ![AWS Architecture](./images/b_diagram.png)
