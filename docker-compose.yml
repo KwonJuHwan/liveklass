@@ -26,6 +26,9 @@ services:
       - "3000:3000"
     depends_on:
       - mysql
+    volumes:
+    - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
+    - ./infrastructure/grafana/provisioning/dashboards:/var/lib/grafana/dashboards
 
   app:
     build: .
