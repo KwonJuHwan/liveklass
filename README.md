@@ -233,3 +233,23 @@ SELECT refund_reason AS metric, COUNT(*) AS value
 FROM refund_logs
 GROUP BY refund_reason;
 ```
+## [선택과제 B] AWS 아키텍처 설계 및 인프라 고도화 방안
+
+### 1. AWS Architecture Diagram
+![AWS Architecture](./images/b_diagram.png)
+
+### 2. 사용할 AWS 서비스 명시 및 역할 설명
+
+| 서비스명 | 아키텍처 내 역할 | 선택 이유 및 역할 차이 설명 |
+| :--- | :--- | :--- |
+| **Amazon EC2** | **이벤트 생성 (Backend API)** | 사용자의 HTTP 요청을 받아 FSM 기반의 로그를 생성하는 백엔드 컴퓨팅 자원입니다. 유저와 직접 통신해야 하므로 **Public Subnet**에 배치하여 트래픽 진입점 역할을 수행합니다. |
+| **Amazon MSK** | **데이터 버퍼 (Message Broker)** | EC2와 RDS 사이의 의존성을 끊어주는 비동기 버퍼 역할을 합니다. 트래픽 발생 시 로그를 안전하게 보관하여 DB가 받을 부하를 제어합니다. |
+| **Amazon RDS** | **데이터 적재 (Log Storage)** | 정형화된 로그 스키마를 유지하고 관리하는 저장소입니다. 보안을 위해 외부 접근이 원천 차단된 **Private Subnet**에 격리하여 배치했습니다. |
+| **Managed Grafana** | **데이터 시각화 (BI Tool)** | 인프라 관리 부담 없이 RDS와 연동하여 실시간 대시보드를 제공하는 완전 관리형 서비스입니다. VPC 내부망 통신을 통해 안전하게 데이터를 쿼리합니다. |
+
+### 3. 설계한 아키텍처에서 가장 고민한 부분
+
+> **"로컬 스크립트의 실무 아키텍처 매핑 및 비동기 파이프라인 구축"**
+
+* **Architecture Mapping:** 로컬에서 단일 프로세스(`main.py`)로 동작하던 이벤트 생성 로직을 현업의 대규모 트래픽 처리에 맞춰 실시간 **Backend API(EC2)** 로 분리 및 매핑했습니다.
+* **DB 병목 해소:** 12만 건의 데이터를 RDB에 직접 적재하며 겪은 I/O 병목을 거울삼아, 백엔드와 DB 사이에 **Amazon MSK**를 비동기 버퍼로 배치했습니다.
