@@ -6,17 +6,37 @@ services:
     container_name: liveclass_db
     restart: always
     environment:
+      # 실제 product 환경에서는 .env로 주입.
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: liveclass_logs
     ports:
       - "3307:3306"
     volumes:
       - ./infrastructure/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   grafana:
-      image: grafana/grafana:latest
-      container_name: liveclass_grafana
-      ports:
-        - "3000:3000"
-      depends_on:
-        - mysql
+    image: grafana/grafana:latest
+    container_name: liveclass_grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+
+  app:
+    build: .
+    container_name: liveclass_generator
+    environment:
+      # 실제 product 환경에서는 .env로 주입.
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: liveclass_logs
+    depends_on:
+      mysql:
+        condition: service_healthy
